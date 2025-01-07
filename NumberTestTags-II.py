@@ -1,7 +1,8 @@
-import os, sys
-from rich import print as rpn
+import os
+import sys
 import traceback
 import sqlite3
+from rich import print as rpn
 
 author = 't.me/dokin_sergey'
 _version = '1.0.1'
@@ -38,7 +39,7 @@ if __name__ == '__main__':
             Ntr,Lkl,artist,NameTr = row
             if ni % 2:
                 if Lkl == 'Ru':rpn(f'[cyan1]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
-                else:rpn(f'[cyan]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                else:rpn(f'[orchid]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
             else:
                 if Lkl == 'En':rpn(f'[green1]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
                 else:rpn(f'[bright_yellow]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
@@ -58,3 +59,7 @@ if __name__ == '__main__':
     rpn('[cyan1]-'*100)
     rpn(f'Работа завершена успешно! SQLite {sqlite3.sqlite_version}')
     print(IB)
+
+#############################################################################
+input('Выход:-> ')
+os._exit(0)

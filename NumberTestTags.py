@@ -1,4 +1,4 @@
-import os, sys
+import os
 from rich import print as rpn
 import traceback
 import sqlite3
