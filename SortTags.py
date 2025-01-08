@@ -1,38 +1,27 @@
 import os, sys
-from rich import print
 import traceback
 import sqlite3
+from rich import print as rpn
 
-author = 't.me/dokin_sergey'
-version = '1.4.3'
-verdate = '2023-12-23 22:54:05'
+__author__ = 't.me/dokin_sergey'
+__version__ = '1.4.5'
+__verdate__ = '2025-01-08 10:45'
 
-# global SQLiteBase #Путь к базе данных
-# global ListTrack # Список свободных/занятых треков
-# global FirsTrack # ТЕКУЩИЙ номер первого трека current
-# global AllCount # общее количество треков
-# global MyDeb # Отладка
 SQLiteBase = f"{os.environ['APPDATA']}\\foobar2000-v2\\configuration\\foo_sqlite.user.db"
 #"""C:/Users/dokin/AppData/Roaming/foobar2000/configuration/foo_sqlite.user.db"""
-print(f'{SQLiteBase = }')
-def SQLiteWrite(IdTrack: int, NewNumTrakc: int) ->str :
-    sql = ''
+print(f'База {SQLiteBase}')
+#######################################################################################################################
+def SQLiteWrite(IdTrack: int, NewNumTrakc: int) ->None:
     try:
-        conn = sqlite3.connect( SQLiteBase )
-        conn.execute("Update CurPlaylist Set NewTrack = ? Where Id_DP = ? ;", (NewNumTrakc, IdTrack))
-        conn.commit()
+        with sqlite3.connect(SQLiteBase) as conn:
+        # conn = sqlite3.connect( SQLiteBase )
+            conn.execute("Update CurPlaylist Set NewTrack = ? Where Id_DP = ? ;", (NewNumTrakc, IdTrack))
+            conn.commit()
     except sqlite3.Warning as Warn:
-        IB = Warn
+        rpn (f'\t[red1]{Warn}')
     except sqlite3.Error as DErr:
-        IB = DErr
-    else:
-        conn.commit()
-        conn.close()
-        sql = 'Ok'
-    # finally:
-        # print (Warn)
-    return sql
-#***************************************
+        rpn (f'\t[red1]{DErr}')
+#######################################################################################################################
 def NewStep (IdTrack: int, OldStp: int, ArtStp: int, GrStp: int) ->int:
     res = 0
     try: # парт намба 1. Начинаем с предыдушего, если занято шагаем по GrStep
@@ -77,10 +66,11 @@ def FirstFreeList(FF:int, FFStp:int) ->int:
     # return 1
 #**************************************************************************************************************************
 if __name__ == '__main__':
-    print ("Тест модуля работы SQL Lite ", version) # print (SQLiteBase)
+    debug = True
+    rpn(f'[cyan1]Сортировка Музыкальных сборников ver.[green1]{__version__} SQL Lite [green1]{sqlite3.sqlite_version}')
+    if debug:rpn(f'[orchid]Режим отладки {debug}')
     try:
         with sqlite3.connect(SQLiteBase) as MusBase:
-        #MusBase = sqlite3.connect(SQLiteBase)
             cursor1 = MusBase.cursor() # основной и 1-го курсор
             SQLTxt = "SELECT distinct AllCount, EnRuCount, GroupCount, GroupStep FROM CurPlaylist order by Locale "
             cursor1.execute(SQLTxt)
