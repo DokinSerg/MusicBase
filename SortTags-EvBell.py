@@ -10,26 +10,18 @@ __verdate__ = '2025-01-08 10:45'
 SQLiteBase = fr"{os.environ['APPDATA']}\foobar2000-v2\configuration\foo_sqlite.user.db"
 #"""C:/Users/dokin/AppData/Roaming/foobar2000/configuration/foo_sqlite.user.db"""
 rpn(f'База {SQLiteBase}')
-
 #################################################################################################################
-def SQLiteWrite(IdTrack: int, NewNumTrakc: int) ->str :#, dbg:bool = False
-    sql = ''
+def SQLiteWrite(IdTrack: int, NewNumTrakc: int) ->None :
     try:
-        conn = sqlite3.connect( SQLiteBase )
-        conn.execute("Update CurPlaylist Set NewTrack = ? Where Id_DP = ? ;", (NewNumTrakc, IdTrack))
-        conn.commit()
+        with sqlite3.connect(SQLiteBase) as conn:
+        # conn = sqlite3.connect( SQLiteBase )
+            conn.execute("Update CurPlaylist Set NewTrack = ? Where Id_DP = ? ;", (NewNumTrakc, IdTrack))
+            conn.commit()
     except sqlite3.Warning as Warn:
-        rpn (f'\t[red1]{Warn}')
+        rpn(f'\t[red1]{Warn}')
     except sqlite3.Error as DErr:
-        rpn (f'\t[red1]{DErr}')
-    else:
-        conn.commit()
-        conn.close()
-        sql = 'Ok'
-    # finally:
-        # print (Warn)
-    return sql
-#-------------------------------------------------------------------------------------------------------------
+        rpn(f'\t[red1]{DErr}')
+#################################################################################################################
 def NewStep (IdTrack: int, OldStp: int, ArtStp: int, GrStp: int) ->int:#, dbg:bool = False
     res = 0
     try: # парт намба 1. Начинаем с предыдушего, если занято шагаем по GrStep
@@ -43,7 +35,6 @@ def NewStep (IdTrack: int, OldStp: int, ArtStp: int, GrStp: int) ->int:#, dbg:bo
         else:
             for ns in range(ArtStp + 1, 1,-1): # пытаемся впихнуть деля шаг пополам от текущего значения
                 CurTrk = OldStp + GrStp * ns //2   # С нормальным шагом не нашли, нужно уменьшить шаг
-                # print(f'Не нашли Но пробуем {CurTrk = } {ns = } {ListTrack[CurTrk] =}')
                 while CurTrk <= AllCount :
                     if ListTrack[CurTrk] == 0:
                         ListTrack[CurTrk] = IdTrack
@@ -69,14 +60,13 @@ def FirstFreeList(FF:int, FFStp:int) ->int:#, dbg:bool = False
     return res
 ##############################################################################################################################################################
 if __name__ == '__main__':
-    debug = True
+    debug = False
     rpn(f'[cyan1]Сортировка Музыкальных сборников ver.[green1]{__version__} SQL Lite [green1]{sqlite3.sqlite_version}')
     if debug:rpn(f'[orchid]Режим отладки {debug}')
     try:
         with sqlite3.connect(SQLiteBase) as MusBase:
-        #MusBase = sqlite3.connect(SQLiteBase)
             cursor1 = MusBase.cursor() # основной и 1-го курсор
-            SQLTxt = "SELECT distinct AllCount, EnRuCount FROM CurPlaylist order by Locale "#, GroupCount, GroupStep
+            SQLTxt = "SELECT distinct AllCount, EnRuCount FROM CurPlaylist order by Locale "
             cursor1.execute(SQLTxt)
             crsr = cursor1.fetchall()
         if  debug:rpn(f'[yellow]{crsr = }')
@@ -89,7 +79,7 @@ if __name__ == '__main__':
         GroupCount = int(round(AllCount/GroupStep,0))# количество групп треков
         FirsTrack  = GroupStep # Текущий новый номер трека, начальное значение AND Artist = 'Fancy'
         rpn(f'{EnCount = } {EnCount = } {RuCount = } {GroupCount = } {GroupStep = } {AllCount = }')
-        SQLTxt = "SELECT Distinct ArtSort, ArtCount FROM CurPlaylist Where Locale = 'En' ORDER BY ArtCount Desc;"
+        SQLTxt = "SELECT Distinct ArtSort, ArtCount FROM CurPlaylist Where Locale = 'En' ORDER BY ArtCount;"# Desc
         CounTrc = 0
         NewTtack = 0
         CurrenTrack = 0
@@ -98,7 +88,6 @@ if __name__ == '__main__':
         for row in cursor1.execute(SQLTxt):
             if debug:rpn(f'[yellow]{row}')
             Artist = row[0]
-            # ArtStep = row[1]
             ArtStep = int(round(AllCount/(GroupStep * row[1]),0))
             if  debug:rpn(f'[yellow]{Artist = }  {ArtStep = }')
             SQLTxt2 = "SELECT Id_DP, Title, ArtCount  FROM CurPlaylist Where (Locale = 'En') AND (ArtSort = '" + Artist + "') ORDER by Id_DP"
@@ -142,16 +131,14 @@ if __name__ == '__main__':
                         sys.exit(1)
 # ****************************************************************************************************
         #raise ('отладка')
-        SQLTxt = "SELECT Distinct ArtSort, ArtStep FROM CurPlaylist Where Locale = 'Ru' ORDER BY ArtStep;"
-        SQLTxt = "SELECT Distinct ArtSort, ArtCount FROM CurPlaylist Where Locale = 'Ru' ORDER BY ArtCount Desc;"
+        SQLTxt = "SELECT Distinct ArtSort, ArtCount FROM CurPlaylist Where Locale = 'Ru' ORDER BY ArtCount;"# Desc
         NewTtack = 0
         CurrenTrack = 1
         FirsTrack = 1
         for row in cursor1.execute(SQLTxt):
             if debug:rpn(f'[yellow]{row}')
-            input('Дальше? :-> ')
+            if debug:input('Дальше? :-> ')
             Artist = row[0]
-            # ArtStep = row[1]
             ArtStep = int(round(AllCount/(GroupStep * row[1]),0))# Шаг номера автора в ГРУППАХ
             SQLTxt2 = "SELECT Id_DP, Title, ArtCount  FROM CurPlaylist Where (Locale = 'Ru') and (ArtSort = '" + Artist + "') "
             cursor2 = MusBase.cursor()
@@ -180,7 +167,7 @@ if __name__ == '__main__':
                 Id_DP = row2[0] #ID трека
                 Title = row2[1] # Название трека
                 ArtCount = row2[2] # Шаг номера трека в группах ( *4)
-                NewTtack = NewStep(Id_DP, NewTtack, ArtStep, 1)
+                NewTtack = NewStep(Id_DP, NewTtack, ArtStep, GroupStep)
                 rpn(f'6:{NewTtack:5}:{GroupStep * ArtStep:5}: {Artist = }:{Title = }')
                 if  NewTtack:
                     SQLiteWrite(Id_DP,NewTtack)
@@ -206,17 +193,17 @@ if __name__ == '__main__':
                             rpn(str(i).rjust(4),str(j).rjust(4))
                         break
     except sqlite3.Warning as Warn:
-        IB = Warn
+        rpn(f'[khaki1]{Warn}')
     except sqlite3.Error as DErr:
-        rpn(str(DErr))
-        rpn(traceback.format_exc())
+        rpn(f'[red1]{DErr}')
+        rpn(f'[red1]{traceback.format_exc()}')
     except Exception as ErrMs:
-        rpn(f'EO:{str(ErrMs)}')
-        rpn(traceback.format_exc())
-        rpn(NewTtack)
-        rpn(f'EO:{GroupStep * ArtStep:5}')
-        rpn(f'EO:{Artist = }')
-        rpn(f'EO:{Title = }')
+        rpn(f'[red1]EO:{str(ErrMs)}')
+        rpn(f'[red1]{traceback.format_exc()}')
+        rpn(f'[red1]{NewTtack}')
+        rpn(f'[red1]EO:{GroupStep * ArtStep:5}')
+        rpn(f'[red1]EO:{Artist = }')
+        rpn(f'[red1]EO:{Title = }')
     finally:
         MusBase.commit()
         MusBase.close()
