@@ -5,8 +5,8 @@ import sqlite3
 from rich import print as rpn
 
 author = 't.me/dokin_sergey'
-__version__ = '1.0.3'
-__verdate__ = '2025-01-08 15:34'
+__version__ = '1.0.4'
+__verdate__ = '2025-02-26 10:23'
 
 SQLiteBase = f"{os.environ['APPDATA']}\\foobar2000-v2\\configuration\\foo_sqlite.user.db"
 #"""C:/Users/dokin/AppData/Roaming/foobar2000/configuration/foo_sqlite.user.db"""
@@ -32,17 +32,23 @@ if __name__ == '__main__':
                 ali = cur.fetchone()
                 a = ali[0]
         #--------------------------------------------------------------------------------------------------------------
+            en = 0;ru = 0
             for ni,row in enumerate(crsr,1):
                 Ntr,Lkl,artist,NameTr = row
                 if ni % 2:
-                    if Lkl == 'Ru':rpn(f'[cyan1]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
-                    else:rpn(f'[orchid]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                    if Lkl == 'Ru':rpn(f'[bright_blue]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                    else:
+                        rpn(f'[bright_yellow]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                        en += 1
                 else:
-                    if Lkl == 'En':rpn(f'[green1]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
-                    else:rpn(f'[bright_yellow]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                    if Lkl == 'En':rpn(f'[cyan]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                    else:
+                        rpn(f'[green1]{ni:5} {Ntr:5} {Lkl} {artist:22} {NameTr}')
+                        ru += 1
         #--------------------------------------------------------------------------------------------------------------
             rpn('[cyan1]-'*100)
             rpn(f'Работа завершена успешно! SQLite {sqlite3.sqlite_version}')
+            rpn(f'Качество обработки Русских {ru:2} английских {en:2}')
             if input('Повторить? :-> '):break
     except sqlite3.Warning as Warn:
         IB = Warn
